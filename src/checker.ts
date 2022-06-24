@@ -8,9 +8,11 @@ export async function isBodyValid(body: string | undefined, checkCheckboxes: boo
     }
 
     if (keywords) {
+        const lowercaseBody = body.toLowerCase();
         return keywords.every((key: string) => {
-            return body.indexOf(key) > -1
-        })
+            const lowercaseKeyword = key.toLowerCase();
+            return lowercaseBody.indexOf(lowercaseKeyword) > -1
+        });
     }
 
     return true
