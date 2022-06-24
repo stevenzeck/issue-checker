@@ -11,7 +11,7 @@ inputs:
     default: 'waiting-for-user-information'
     required: false
   issue-label-color:
-    description: 'The color of the label that is applied to an issue (only used if label doesn't already exit).'
+    description: 'The color of the label that is applied to an issue (only used if label doesn''t already exist).'
     default: 'ffffff'
     required: false
   issue-comment:
