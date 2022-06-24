@@ -1,30 +1,31 @@
 export const context = {
   payload: {
     issue: {
-      number: 123,
-    },
+      number: 123
+    }
   },
   repo: {
-    owner: "stevenzeck",
-    repo: "helloworld",
-  },
-};
+    owner: 'stevenzeck',
+    repo: 'helloworld'
+  }
+}
 
 const mockApi = {
   rest: {
     issues: {
       addLabels: jest.fn(),
       removeLabel: jest.fn(),
-      getLabel: jest.fn()
+      getLabel: jest
+        .fn()
         .mockRejectedValueOnce(undefined)
         .mockResolvedValue(undefined),
       createLabel: jest.fn(),
       createComment: jest.fn()
     },
     repos: {
-      getContent: jest.fn(),
-    },
+      getContent: jest.fn()
+    }
   }
-};
+}
 
-export const getOctokit = jest.fn().mockImplementation(() => mockApi);
+export const getOctokit = jest.fn().mockImplementation(() => mockApi)
