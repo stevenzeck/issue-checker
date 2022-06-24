@@ -15,10 +15,16 @@ jobs:
           npm install
       - run: |
           npm run all
-  test: # make sure the action works on a clean machine without building
+  issue_check_job:
     runs-on: ubuntu-latest
+    name: A job to check issues
     steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+      - name: Issue Check action step
+        uses: stevenzeck/issue-checker@0.0.5-beta
         with:
-          milliseconds: 1000
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          issue-label-name: 'waiting-for-user-information'
+          issue-label-color: 'ffffff'
+          issue-comment: "Sorry, we need more information."
+          issue-check-tasks: 'true'
+          issue-keywords: 'recreate'
