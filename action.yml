@@ -7,7 +7,7 @@ inputs:
     required: false
     default: ${{ github.token }}
   issue-label-name:
-    description: 'The name of the label to apply to an issue when it's missing required information.'
+    description: 'The name of the label to apply to an issue when it''s missing required information.'
     default: 'waiting-for-user-information'
     required: false
   issue-label-color:
