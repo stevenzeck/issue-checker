@@ -26,8 +26,10 @@ function isBodyValid(body, checkCheckboxes, keywords) {
             return false;
         }
         if (keywords) {
+            const lowercaseBody = body.toLowerCase();
             return keywords.every((key) => {
-                return body.indexOf(key) > -1;
+                const lowercaseKeyword = key.toLowerCase();
+                return lowercaseBody.includes(lowercaseKeyword);
             });
         }
         return true;
@@ -84,16 +86,18 @@ function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const token = core.getInput("repo-token", { required: true });
-            const labelName = core.getInput("issue-label-name", { required: false });
-            const labelColor = core.getInput("issue-label-color", { required: false });
-            const commentText = core.getInput("issue-comment", { required: true });
-            const checkTasks = core.getInput("issue-check-tasks", { required: false }) === 'true';
-            let issueKeywords = core.getInput("issue-keywords", { required: false });
-            const keywords = issueKeywords.split(',').map((word) => word.trim());
+            const token = core.getInput('repo-token', { required: true });
+            const labelName = core.getInput('issue-label-name', { required: false });
+            const labelColor = core.getInput('issue-label-color', { required: false });
+            const commentText = core.getInput('issue-comment', { required: true });
+            const checkTasks = core.getInput('issue-check-tasks', { required: false }) === 'true';
+            const issueKeywords = core.getInput('issue-keywords', { required: false });
+            const keywords = issueKeywords
+                .split(',')
+                .map((word) => word.trim());
             const issueNumber = getIssueNumber();
             if (!issueNumber) {
-                console.log("Could not get issue number from context, exiting");
+                console.log('Could not get issue number from context, exiting');
                 return;
             }
             const client = github.getOctokit(token);
@@ -110,8 +114,10 @@ function run() {
             }
         }
         catch (error) {
-            // core.error(error);
-            // core.setFailed(error.message);
+            if (error instanceof Error) {
+                core.error(error);
+                core.setFailed(error.message);
+            }
         }
     });
 }
@@ -126,20 +132,22 @@ function getIssueNumber() {
 }
 function createLabelIfNotExists(client, labelName, labelColor) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { owner, repo } = github.context.repo;
-        yield client.rest.issues.getLabel({
-            owner: owner,
-            repo: repo,
+        /* eslint-disable github/no-then*/
+        yield client.rest.issues
+            .getLabel({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
             name: labelName
-        }).catch((e) => {
+        })
+            .catch((e) => __awaiter(this, void 0, void 0, function* () {
             core.debug(e);
-            return client.rest.issues.createLabel({
-                owner: owner,
-                repo: repo,
+            yield client.rest.issues.createLabel({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
                 name: labelName,
                 color: labelColor
             });
-        });
+        }));
     });
 }
 function addLabelToIssue(client, labelName, labelColor, issueNumber) {
@@ -149,7 +157,7 @@ function addLabelToIssue(client, labelName, labelColor, issueNumber) {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: issueNumber,
-            labels: [labelName],
+            labels: [labelName]
         });
     });
 }
@@ -159,7 +167,7 @@ function removeLabelFromIssue(client, labelName, issueNumber) {
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
             issue_number: issueNumber,
-            name: labelName,
+            name: labelName
         });
     });
 }
