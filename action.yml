@@ -4,25 +4,25 @@ author: 'Steven Zeck'
 inputs:
   repo-token:
     description: 'Token for the repository. Can be passed in using `{{ secrets.GITHUB_TOKEN }}`.'
-    required: false
+    required: true
     default: ${{ github.token }}
-  issue-label-name:
+  label-name:
     description: 'The name of the label to apply to an issue when it''s missing required information.'
     default: 'waiting-for-user-information'
     required: false
-  issue-label-color:
-    description: 'The color of the label that is applied to an issue (only used if label doesn''t already exist).'
+  label-color:
+    description: 'Hex format for the color of the label that is applied to an issue (only used if label doesn''t already exist).'
     default: 'ffffff'
     required: false
-  issue-comment:
+  comment-text:
     description: 'The text of the comment that is added to an issue.'
     default: ''
-    required: true
-  issue-check-tasks:
+    required: false
+  check-tasks:
     description: 'Whether or not to check that all tasks are completed.'
     default: 'false'
     required: false
-  issue-keywords:
+  keywords:
     description: 'A comma delimited list of keywords to look for when an issue is created or edited'
     default: ''
     required: false

@@ -7,12 +7,12 @@ type ClientType = ReturnType<typeof github.getOctokit>
 export async function run(): Promise<void> {
   try {
     const token = core.getInput('repo-token', {required: true})
-    const labelName = core.getInput('issue-label-name', {required: false})
-    const labelColor = core.getInput('issue-label-color', {required: false})
-    const commentText = core.getInput('issue-comment', {required: true})
+    const labelName = core.getInput('label-name', {required: false})
+    const labelColor = core.getInput('label-color', {required: false})
+    const commentText = core.getInput('comment-text', {required: false})
     const checkTasks =
-      core.getInput('issue-check-tasks', {required: false}) === 'true'
-    const issueKeywords = core.getInput('issue-keywords', {required: false})
+      core.getInput('check-tasks', {required: false}) === 'true'
+    const issueKeywords = core.getInput('keywords', {required: false})
 
     const keywords = issueKeywords
       .split(',')
@@ -69,6 +69,7 @@ async function createLabelIfNotExists(
       name: labelName
     })
     .catch(async e => {
+      // TODO validate hex color is valid ^#[a-fA-F0-9]{6}$
       core.debug(e)
       await client.rest.issues.createLabel({
         owner: github.context.repo.owner,
