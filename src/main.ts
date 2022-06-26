@@ -32,6 +32,7 @@ export async function run(): Promise<void> {
     if (!isValid) {
       await addLabelToIssue(client, labelName, labelColor, issueNumber)
       if (github.context.payload.action !== 'edited') {
+        // TODO Check comment text is not empty before adding a comment
         await addCommentToIssue(client, commentText, issueNumber)
       }
     } else {

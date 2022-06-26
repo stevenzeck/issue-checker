@@ -29,6 +29,7 @@ jobs:
 
 | Name | Description | Default |
 | --- | --- | --- |
+| `repo-token` | Token to use to authorize label changes and commenting on issues | `${{ github.token }}` |
 | `label-name` | The name of the label to apply when an issue does not have all tasks checked | `waiting-for-user-information` |
 | `label-color` | The color of the label (will be ignored if the label already exists) | `ffffff` |
 | `comment-text` | The text of the comment to add to the issue in addition to the label | `''` |

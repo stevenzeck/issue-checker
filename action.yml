@@ -8,24 +8,24 @@ inputs:
     default: ${{ github.token }}
   label-name:
     description: 'The name of the label to apply to an issue when it''s missing required information.'
-    default: 'waiting-for-user-information'
     required: false
+    default: 'waiting-for-user-information'
   label-color:
     description: 'Hex format for the color of the label that is applied to an issue (only used if label doesn''t already exist).'
-    default: 'ffffff'
     required: false
+    default: 'ffffff'
   comment-text:
     description: 'The text of the comment that is added to an issue.'
-    default: ''
     required: false
+    default: ''
   check-tasks:
     description: 'Whether or not to check that all tasks are completed.'
-    default: 'false'
     required: false
+    default: 'false'
   keywords:
     description: 'A comma delimited list of keywords to look for when an issue is created or edited'
-    default: ''
     required: false
+    default: ''
 runs:
   using: 'node16'
   main: 'dist/index.js'
