@@ -87,11 +87,11 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput('repo-token', { required: true });
-            const labelName = core.getInput('issue-label-name', { required: false });
-            const labelColor = core.getInput('issue-label-color', { required: false });
-            const commentText = core.getInput('issue-comment', { required: true });
-            const checkTasks = core.getInput('issue-check-tasks', { required: false }) === 'true';
-            const issueKeywords = core.getInput('issue-keywords', { required: false });
+            const labelName = core.getInput('label-name', { required: false });
+            const labelColor = core.getInput('label-color', { required: false });
+            const commentText = core.getInput('comment-text', { required: false });
+            const checkTasks = core.getInput('check-tasks', { required: false }) === 'true';
+            const issueKeywords = core.getInput('keywords', { required: false });
             const keywords = issueKeywords
                 .split(',')
                 .map((word) => word.trim());
@@ -106,6 +106,7 @@ function run() {
             if (!isValid) {
                 yield addLabelToIssue(client, labelName, labelColor, issueNumber);
                 if (github.context.payload.action !== 'edited') {
+                    // TODO Check comment text is not empty before adding a comment
                     yield addCommentToIssue(client, commentText, issueNumber);
                 }
             }
@@ -140,6 +141,7 @@ function createLabelIfNotExists(client, labelName, labelColor) {
             name: labelName
         })
             .catch((e) => __awaiter(this, void 0, void 0, function* () {
+            // TODO validate hex color is valid ^#[a-fA-F0-9]{6}$
             core.debug(e);
             yield client.rest.issues.createLabel({
                 owner: github.context.repo.owner,
