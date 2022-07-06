@@ -23,7 +23,7 @@ describe('issues are missing required information', () => {
       issue: {
         number: 1,
         title: 'Test',
-        body: '- [x] Task 1\r\n- [x] Task 2\r\n- [x] Task 3\r\ngist\nrecreate'
+        body: '- [x] Task 1\r\n- [ ] Task 2\r\n- [x] Task 3\r\ngist\nrecreate'
       }
     }
 
