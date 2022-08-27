@@ -1,6 +1,6 @@
 {
   "name": "issue-checker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": false,
   "description": "A GitHub Action that labels and comments on issues that are missing required information",
   "main": "lib/main.js",
