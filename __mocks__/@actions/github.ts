@@ -20,7 +20,8 @@ const mockApi = {
         .mockRejectedValueOnce(undefined)
         .mockResolvedValue(undefined),
       createLabel: jest.fn(),
-      createComment: jest.fn()
+      createComment: jest.fn(),
+      listLabelsOnIssue: jest.fn()
     },
     repos: {
       getContent: jest.fn()

@@ -3,6 +3,7 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 
 const gh = github.getOctokit('_')
+const listLabelsOnIssueMock = jest.spyOn(gh.rest.issues, 'listLabelsOnIssue')
 const getLabelsMock = jest.spyOn(gh.rest.issues, 'getLabel')
 const createLabelsMock = jest.spyOn(gh.rest.issues, 'createLabel')
 const addLabelsMock = jest.spyOn(gh.rest.issues, 'addLabels')
@@ -17,7 +18,7 @@ describe('issues are missing required information', () => {
       'label-color': 'ffffff',
       'comment-text': '',
       'check-tasks': 'true',
-      'keywords': 'recreate'
+      keywords: 'recreate'
     })
     github.context.payload = {
       issue: {

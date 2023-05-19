@@ -1,18 +1,17 @@
-import * as core from '@actions/core'
-import * as github from '@actions/github'
+import {getInput, setFailed, error as coreError} from '@actions/core'
+import {context, getOctokit} from '@actions/github'
 import {isBodyValid} from './checker'
 
-type ClientType = ReturnType<typeof github.getOctokit>
+type GitHubClient = ReturnType<typeof getOctokit>['rest']
 
 export async function run(): Promise<void> {
   try {
-    const token = core.getInput('repo-token', {required: true})
-    const labelName = core.getInput('label-name', {required: false})
-    const labelColor = core.getInput('label-color', {required: false})
-    const commentText = core.getInput('comment-text', {required: false})
-    const checkTasks =
-      core.getInput('check-tasks', {required: false}) === 'true'
-    const issueKeywords = core.getInput('keywords', {required: false})
+    const token = getInput('repo-token', {required: true})
+    const labelName = getInput('label-name', {required: false})
+    const labelColor = getInput('label-color', {required: false})
+    const commentText = getInput('comment-text', {required: false})
+    const checkTasks = getInput('check-tasks', {required: false}) === 'true'
+    const issueKeywords = getInput('keywords', {required: false})
 
     const keywords = issueKeywords
       .split(',')
@@ -24,24 +23,40 @@ export async function run(): Promise<void> {
       return
     }
 
-    const client: ClientType = github.getOctokit(token)
+    const {rest: client} = getOctokit(token)
 
-    const body: string | undefined = github.context.payload.issue?.body
+    const body: string | undefined = context.payload.issue?.body
     const isValid: boolean = await isBodyValid(body, checkTasks, keywords)
+    const issueLabels = await client.issues.listLabelsOnIssue({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: issueNumber
+    })
 
     if (!isValid) {
       await addLabelToIssue(client, labelName, labelColor, issueNumber)
-      if (github.context.payload.action !== 'edited') {
+      if (context.payload.action !== 'edited') {
         // TODO Check comment text is not empty before adding a comment
         await addCommentToIssue(client, commentText, issueNumber)
       }
-    } else {
+    }
+
+    let removeLabel = false
+    for (const label of issueLabels.data) {
+      /* eslint-disable no-empty*/
+      if (typeof label === 'string') {
+      } else if (label.name === labelName) {
+        removeLabel = true
+      }
+    }
+
+    if (removeLabel) {
       await removeLabelFromIssue(client, labelName, issueNumber)
     }
   } catch (error) {
     if (error instanceof Error) {
-      core.error(error)
-      core.setFailed(error.message)
+      coreError(error)
+      setFailed(error.message)
     }
   }
 }
@@ -49,7 +64,7 @@ export async function run(): Promise<void> {
 run()
 
 function getIssueNumber(): number | undefined {
-  const issue = github.context.payload.issue
+  const issue = context.payload.issue
   if (!issue) {
     return undefined
   }
@@ -58,66 +73,86 @@ function getIssueNumber(): number | undefined {
 }
 
 async function createLabelIfNotExists(
-  client: ClientType,
+  client: GitHubClient,
   labelName: string,
   labelColor: string
 ): Promise<void> {
   /* eslint-disable github/no-then*/
-  await client.rest.issues
+  await client.issues
     .getLabel({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
+      owner: context.repo.owner,
+      repo: context.repo.repo,
       name: labelName
     })
     .catch(async e => {
       // TODO validate hex color is valid ^#[a-fA-F0-9]{6}$
-      core.debug(e)
-      await client.rest.issues.createLabel({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        name: labelName,
-        color: labelColor
-      })
+      console.log(`Failed to get repository label due to: "${e}"`)
+      try {
+        await client.issues.createLabel({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          name: labelName,
+          color: labelColor
+        })
+      } catch (error) {
+        console.log(`Failed to create repository label due to: "${error}"`)
+        throw error
+      }
     })
 }
 
 async function addLabelToIssue(
-  client: ClientType,
+  client: GitHubClient,
   labelName: string,
   labelColor: string,
   issueNumber: number
 ): Promise<void> {
   await createLabelIfNotExists(client, labelName, labelColor)
-  await client.rest.issues.addLabels({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: issueNumber,
-    labels: [labelName]
-  })
+  try {
+    await client.issues.addLabels({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: issueNumber,
+      labels: [labelName]
+    })
+  } catch (error) {
+    console.log(`Could not add label to issue due to: "${error}"`)
+    throw error
+  }
 }
 
 async function removeLabelFromIssue(
-  client: ClientType,
-  labelName: string,
-  issueNumber: number
+  client: GitHubClient,
+  name: string,
+  issue_number: number
 ): Promise<void> {
-  await client.rest.issues.removeLabel({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: issueNumber,
-    name: labelName
-  })
+  try {
+    await client.issues.removeLabel({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number,
+      name
+    })
+  } catch (error) {
+    console.log(`Could not remove label from issue due to: "${error}"`)
+    throw error
+  }
 }
 
 async function addCommentToIssue(
-  client: ClientType,
+  client: GitHubClient,
   commentText: string,
   issueNumber: number
 ): Promise<void> {
-  await client.rest.issues.createComment({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: issueNumber,
-    body: commentText
-  })
+  try {
+    await client.issues.createComment({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: issueNumber,
+      body: commentText
+    })
+  } catch (error) {
+    console.log(`Could not add comment to issue due to: "${error}"`)
+    throw error
+  }
 }
