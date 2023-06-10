@@ -1,23 +1,27 @@
+function hasUncheckedCheckboxes(text: string): boolean {
+  const uncheckedCheckboxRegex = /-\s\[\s]/g
+  return uncheckedCheckboxRegex.test(text)
+}
+
+function matchesKeywords(text: string, keywords: string[]): boolean {
+  const lowercaseContent = text.toLowerCase()
+  return keywords.every(keyword =>
+    lowercaseContent.includes(keyword.toLowerCase())
+  )
+}
+
 export async function isBodyValid(
-  body: string | undefined,
-  checkCheckboxes: boolean,
-  keywords: string[] | undefined
+  body?: string,
+  checkCheckboxes = false,
+  keywords?: string[]
 ): Promise<boolean> {
   if (!body) {
     return false
   }
 
-  if (checkCheckboxes && /-\s\[\s\]/g.test(body)) {
+  if (checkCheckboxes && hasUncheckedCheckboxes(body)) {
     return false
   }
 
-  if (keywords) {
-    const lowercaseBody = body.toLowerCase()
-    return keywords.every((key: string) => {
-      const lowercaseKeyword = key.toLowerCase()
-      return lowercaseBody.includes(lowercaseKeyword)
-    })
-  }
-
-  return true
+  return keywords ? matchesKeywords(body, keywords) : true
 }

@@ -13,11 +13,9 @@ export async function run(): Promise<void> {
     const checkTasks = getInput('check-tasks', {required: false}) === 'true'
     const issueKeywords = getInput('keywords', {required: false})
 
-    const keywords = issueKeywords
-      .split(',')
-      .map((word: Readonly<string>): string => word.trim())
+    const keywords = issueKeywords.split(',').map((word: string) => word.trim())
 
-    const issueNumber: number | undefined = getIssueNumber()
+    const issueNumber = getIssueNumber()
     if (!issueNumber) {
       console.log('Could not get issue number from context, exiting')
       return
@@ -25,8 +23,8 @@ export async function run(): Promise<void> {
 
     const {rest: client} = getOctokit(token)
 
-    const body: string | undefined = context.payload.issue?.body
-    const isValid: boolean = await isBodyValid(body, checkTasks, keywords)
+    const body = context.payload.issue?.body
+    const isValid = await isBodyValid(body, checkTasks, keywords)
     const issueLabels = await client.issues.listLabelsOnIssue({
       owner: context.repo.owner,
       repo: context.repo.repo,
@@ -35,22 +33,12 @@ export async function run(): Promise<void> {
 
     if (!isValid) {
       await addLabelToIssue(client, labelName, labelColor, issueNumber)
-      if (context.payload.action !== 'edited') {
-        // TODO Check comment text is not empty before adding a comment
+      if (context.payload.action !== 'edited' && commentText.trim()) {
         await addCommentToIssue(client, commentText, issueNumber)
       }
     }
 
-    let removeLabel = false
-    for (const label of issueLabels.data) {
-      /* eslint-disable no-empty*/
-      if (typeof label === 'string') {
-      } else if (label.name === labelName) {
-        removeLabel = true
-      }
-    }
-
-    if (removeLabel) {
+    if (issueLabels.data.some(label => label.name === labelName)) {
       await removeLabelFromIssue(client, labelName, issueNumber)
     }
   } catch (error) {
@@ -64,12 +52,12 @@ export async function run(): Promise<void> {
 run()
 
 function getIssueNumber(): number | undefined {
-  const issue = context.payload.issue
-  if (!issue) {
-    return undefined
-  }
+  return context.payload.issue?.number
+}
 
-  return issue.number
+function isHexColorValid(color: string): boolean {
+  const hexColorRegex = /^[a-fA-F0-9]{6}$/
+  return hexColorRegex.test(color)
 }
 
 async function createLabelIfNotExists(
@@ -77,16 +65,16 @@ async function createLabelIfNotExists(
   labelName: string,
   labelColor: string
 ): Promise<void> {
-  /* eslint-disable github/no-then*/
-  await client.issues
-    .getLabel({
+  try {
+    await client.issues.getLabel({
       owner: context.repo.owner,
       repo: context.repo.repo,
       name: labelName
     })
-    .catch(async e => {
-      // TODO validate hex color is valid ^#[a-fA-F0-9]{6}$
-      console.log(`Failed to get repository label due to: "${e}"`)
+  } catch (e) {
+    console.log(`Failed to get repository label due to: "${e}"`)
+    // TODO use ffffff as a default color
+    if (isHexColorValid(labelColor)) {
       try {
         await client.issues.createLabel({
           owner: context.repo.owner,
@@ -98,7 +86,10 @@ async function createLabelIfNotExists(
         console.log(`Failed to create repository label due to: "${error}"`)
         throw error
       }
-    })
+    } else {
+      console.log('Invalid hex color')
+    }
+  }
 }
 
 async function addLabelToIssue(

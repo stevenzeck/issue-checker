@@ -16,7 +16,7 @@ describe('issues are missing required information', () => {
       'repo-token': '12345',
       'label-name': 'needs-more-information',
       'label-color': 'ffffff',
-      'comment-text': '',
+      'comment-text': 'Please update this issue with the required information.',
       'check-tasks': 'true',
       keywords: 'recreate'
     })
