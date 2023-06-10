@@ -1,20 +1,8 @@
-function hasUncheckedCheckboxes(text: string): boolean {
-  const uncheckedCheckboxRegex = /-\s\[\s]/g
-  return uncheckedCheckboxRegex.test(text)
-}
-
-function matchesKeywords(text: string, keywords: string[]): boolean {
-  const lowercaseContent = text.toLowerCase()
-  return keywords.every(keyword =>
-    lowercaseContent.includes(keyword.toLowerCase())
-  )
-}
-
-export async function isBodyValid(
+function isBodyValid(
   body?: string,
   checkCheckboxes = false,
   keywords?: string[]
-): Promise<boolean> {
+): boolean {
   if (!body) {
     return false
   }
@@ -23,5 +11,16 @@ export async function isBodyValid(
     return false
   }
 
-  return keywords ? matchesKeywords(body, keywords) : true
+  return !keywords || matchesKeywords(body, keywords)
 }
+
+function hasUncheckedCheckboxes(body: string): boolean {
+  return body.includes('- [ ]')
+}
+
+function matchesKeywords(body: string, keywords: string[]): boolean {
+  const lowercaseBody = body.toLowerCase()
+  return keywords.some(keyword => lowercaseBody.includes(keyword.toLowerCase()))
+}
+
+export {isBodyValid}
