@@ -20,7 +20,7 @@ jobs:
     name: A job to check issues
     steps:
       - name: Issue Check action step
-        uses: stevenzeck/issue-checker@0.0.5-beta
+        uses: stevenzeck/issue-checker@main
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           issue-label-name: 'waiting-for-user-information'
